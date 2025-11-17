@@ -30,6 +30,14 @@ resource "aws_security_group" "name" {
     description = "open port for https"
   }
   ingress {
+    from_port   = 3000
+    to_port     = 10000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "open range port"
+  }
+
+  ingress {
     from_port   = 30000
     to_port     = 32767
     protocol    = "tcp"
@@ -91,4 +99,10 @@ resource "aws_instance" "Instance" {
   tags = {
     Name = "WanderLust-MegaProject"
   }
+}
+
+# used for locally stop and start the instance
+resource "aws_ec2_instance_state" "state" {
+  instance_id = aws_instance.Instance.id
+  state       = ""
 }
