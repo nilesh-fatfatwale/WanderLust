@@ -1,0 +1,12 @@
+kind: persistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mongo-pvc
+  namespace: wanderlust
+spec:
+  accesModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 5Gi
