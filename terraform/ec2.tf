@@ -104,5 +104,5 @@ resource "aws_instance" "Instance" {
 # used for locally stop and start the instance
 resource "aws_ec2_instance_state" "state" {
   instance_id = aws_instance.Instance.id
-  state       = ""
+  state       = "running"
 }
