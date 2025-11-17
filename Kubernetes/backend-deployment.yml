@@ -20,4 +20,4 @@ spec:
         - name: backend
           image: nileshfatfatwale/wanderlustbackend:v2
           ports:
-            - conatainerPort: 8080
+            - containerPort: 8080
