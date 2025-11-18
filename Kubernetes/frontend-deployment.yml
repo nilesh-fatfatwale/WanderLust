@@ -18,6 +18,6 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: nileshfatfatwale/wanderlustfrontend:v12
+          image: nileshfatfatwale/wanderlustfrontend:v14
           ports:
             - containerPort: 5173
