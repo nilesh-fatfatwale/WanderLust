@@ -1,0 +1,131 @@
+@Library('Shared') _
+pipeline {
+    agent any
+
+    parameters {
+        string(name:'FrontendImageTag', defaultValue:'', description:'Setting docker image for latest push')
+        string(name:'BackendImageTag', defaultValue:'', description:'Setting docker image for latest push')
+    }
+
+    stages {
+
+    stage('validate parameters') {
+        steps {
+            script {
+                if (params.FrontendImageTag == '' && params.BackendImageTag == '') {
+                    error('FrontendImageTag and BackendImageTag must be provided')
+                }
+            }
+        }
+    }
+
+    stage('clean') {
+        steps {
+            cleanWs()
+        }
+    }
+
+    stage("git clone"){
+        steps{
+            script{
+                code_checkout("https://github.com/nilesh-fatfatwale/WanderLust.git", "main")
+            }
+        }
+    }
+
+    stage("varify image tags"){
+        steps{
+            script{
+            echo "FRONTEND_DOCKER_TAG: ${params.FRONTEND_DOCKER_TAG}"
+            echo "BACKEND_DOCKER_TAG: ${params.BACKEND_DOCKER_TAG}"
+            }
+        }
+    }
+
+    stage("Update to Kubernetes Manifests"){
+        steps{
+            script{ 
+                dir('kubernetes'){
+                    sh """
+                        sed -i -e s/wanderlustbackend.*/wanderlustbackend:${params.BACKEND_DOCKER_TAG}/g backend-deployment.yaml
+                    """
+                }
+                dir('kubernetes'){
+                     sh """
+                        sed -i -e s/wanderlustfrontend.*/wanderlustfrontend:${params.FRONTEND_DOCKER_TAG}/g frontend-deployment.yaml
+                        """
+                }
+            }
+        }
+    }
+
+    stage("code update and push to github"){
+        steps{
+            script{
+           withCredentials([gitUsernamePassword(credentialsId: 'Github-cred', gitToolName: 'Default')]) {
+            sh '''
+                        echo "Checking repository status: "
+                        git status
+                    
+                        echo "Adding changes to git: "
+                        git add .
+                        
+                        echo "Commiting changes: "
+                        git commit -m "Updated environment variables"
+                        
+                        echo "Pushing changes to github: "
+                        git push https://github.com/nilesh-fatfatwale/WanderLust.git main
+                    '''
+            }
+        }
+
+    }
+    }
+}
+psot{
+    success{
+        script{
+            emailext attachLog:true ,
+            from : 'fatfatwalenilesh@gmail.com',
+            subject: "WanderLust Application has beem updated and deployed - '${currentBuild.result}'",
+            body: """
+            <html>
+                    <body>
+                        <div style="background-color: #FFA07A; padding: 10px; margin-bottom: 10px;">
+                            <p style="color: black; font-weight: bold;">Project: ${env.JOB_NAME}</p>
+                        </div>
+                        <div style="background-color: #90EE90; padding: 10px; margin-bottom: 10px;">
+                            <p style="color: black; font-weight: bold;">Build Number: ${env.BUILD_NUMBER}</p>
+                        </div>
+                        <div style="background-color: #87CEEB; padding: 10px; margin-bottom: 10px;">
+                            <p style="color: black; font-weight: bold;">URL: ${env.BUILD_URL}</p>
+                        </div>
+                    </body>
+                    </html>
+            """,
+            to: 'nileshfatfatwale007@gmail.com',
+            mimeType: 'text/html'
+        }
+    }
+    failure {
+        emailext attachLog :true,
+        from : 'fatfatwalenilesh@gmail.com',
+        subject: "WanderLust Application build failed - '${currentBuild.result}'",
+        body: """
+        <html>
+                    <body>
+                        <div style="background-color: #FFA07A; padding: 10px; margin-bottom: 10px;">
+                            <p style="color: black; font-weight: bold;">Project: ${env.JOB_NAME}</p>
+                        </div>
+                        <div style="background-color: #90EE90; padding: 10px; margin-bottom: 10px;">
+                            <p style="color: black; font-weight: bold;">Build Number: ${env.BUILD_NUMBER}</p>
+                        </div>
+                    </body>
+                    </html>
+        """,
+        to: 'nileshfatfatwale007@gmail.com',
+        mimeType:'text/html'
+    }
+}
+
+}
