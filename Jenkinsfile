@@ -45,8 +45,12 @@ pipeline {
     stage("Docker Build") {
       steps {
         script {
+          dir('backend') {
           docker_build("nileshfatfatwale", "WanderLustBackend", params.BackendImageTag)
-          docker_build("nileshfatfatwale", "WanderLustFrontend", params.FrontendImageTag)
+          }
+           dir('frontend') {
+           docker_build("nileshfatfatwale", "WanderLustFrontend", params.FrontendImageTag)
+           }
         }
       }
     }
@@ -54,12 +58,8 @@ pipeline {
     stage("Docker Push") {
       steps {
         script {
-          dir('backend') {
             docker_push("nileshfatfatwale", "WanderLustBackend", params.BackendImageTag)
-          }
-          dir('frontend') {
             docker_push("nileshfatfatwale", "WanderLustFrontend", params.FrontendImageTag)
-          }
         }
       }
     }
