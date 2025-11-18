@@ -18,6 +18,6 @@ spec:
     spec:
       containers:
         - name: backend
-          image: nileshfatfatwale/wanderlustbackend:null
+          image: nileshfatfatwale/wanderlustbackend:
           ports:
             - containerPort: 8080
