@@ -1,10 +1,10 @@
 @Library('Shared') _
 pipeline {
-    agent any
+    agent any;
 
     parameters {
-        string(name:'FrontendImageTag', defaultValue:'', description:'Setting docker image for latest push')
-        string(name:'BackendImageTag', defaultValue:'', description:'Setting docker image for latest push')
+        string(name:'FRONTEND_DOCKER_TAG', defaultValue:'', description:'Setting docker image for latest push')
+        string(name:'BACKEND_DOCKER_TAG', defaultValue:'', description:'Setting docker image for latest push')
     }
 
     stages {
@@ -12,8 +12,8 @@ pipeline {
     stage('validate parameters') {
         steps {
             script {
-                if (params.FrontendImageTag == '' && params.BackendImageTag == '') {
-                    error('FrontendImageTag and BackendImageTag must be provided')
+                if (params.FRONTEND_DOCKER_TAG == '' && params.BACKEND_DOCKER_TAG == '') {
+                    error('FRONTEND_DOCKER_TAG and BACKEND_DOCKER_TAG must be provided')
                 }
             }
         }
@@ -36,8 +36,8 @@ pipeline {
     stage("varify image tags"){
         steps{
             script{
-            echo "FRONTEND_DOCKER_TAG: ${params.FRONTEND_DOCKER_TAG}"
-            echo "BACKEND_DOCKER_TAG: ${params.BACKEND_DOCKER_TAG}"
+            echo "FRONTEND_DOCKER_TAG: params.FRONTEND_DOCKER_TAG"
+            echo "BACKEND_DOCKER_TAG: params.BACKEND_DOCKER_TAG"
             }
         }
     }
@@ -45,14 +45,14 @@ pipeline {
     stage("Update to Kubernetes Manifests"){
         steps{
             script{ 
-                dir('kubernetes'){
+                dir('Kubernetes'){
                     sh """
-                        sed -i -e s/wanderlustbackend.*/wanderlustbackend:${params.BACKEND_DOCKER_TAG}/g backend-deployment.yaml
+                        sed -i -e s/wanderlustbackend.*/wanderlustbackend:${params.BACKEND_DOCKER_TAG}/g backend-deployment.yml
                     """
                 }
-                dir('kubernetes'){
+                dir('Kubernetes'){
                      sh """
-                        sed -i -e s/wanderlustfrontend.*/wanderlustfrontend:${params.FRONTEND_DOCKER_TAG}/g frontend-deployment.yaml
+                        sed -i -e s/wanderlustfrontend.*/wanderlustfrontend:${params.FRONTEND_DOCKER_TAG}/g frontend-deployment.yml
                         """
                 }
             }
